@@ -1,0 +1,15 @@
+services:
+  # Airflow Services Base
+  airflow_common_base:
+    image: apache/airflow:latest
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=${AIRFLOW__CORE__EXECUTOR}
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@airflow_db:5432/${POSTGRES_DB}
+      - AIRFLOW__WEBSERVER__SECRET_KEY=${AIRFLOW__WEBSERVER__SECRET_KEY}
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
+      - ${AIRFLOW_PROJ_DIR}/requirements.txt:/opt/airflow/requirements.txt
