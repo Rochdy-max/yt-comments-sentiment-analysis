@@ -1,5 +1,5 @@
 Todo:
-    [] Setup Airflow
+    [+] Setup Airflow
     [] Create my first job
     [] Setup Kafka
     [] Create an Airflow job to get comments from a YouTube video and bridge them to Kafka (kafka producer)
