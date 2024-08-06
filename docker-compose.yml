@@ -1,0 +1,49 @@
+services:
+  # Airflow PostgreSQL Database
+  airflow_db:
+    image: postgres:16.0
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
+  # Apache Airflow Webserver
+  airflow_webserver:
+    entrypoint: bash -c "airflow db init && airflow users create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin && airflow webserver"
+    image: apache/airflow:latest
+    restart: always
+    depends_on:
+      - airflow_db
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=${AIRFLOW__CORE__EXECUTOR}
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@airflow_db:5432/${POSTGRES_DB}
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    volumes:
+      - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
+      - ${AIRFLOW_PROJ_DIR}/requirements.txt:/opt/airflow/requirements.txt
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+volumes:
+  postgres-db-volume:
+  spark_data:
