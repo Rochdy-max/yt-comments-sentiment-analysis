@@ -1,7 +1,7 @@
 Todo:
     [+] Setup Airflow
     [+] Create my first job
-    [] Setup Kafka
+    [+] Setup Kafka
     [] Create an Airflow job to get comments from a YouTube video and bridge them to Kafka (kafka producer)
     [] Setup Spark
     [] Use Spark Streaming and TextBlob to analyse sentiment for each comment, then send results to kafka (kafka consumer and also producer)
