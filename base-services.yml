@@ -11,5 +11,5 @@ services:
         max-size: 10m
         max-file: "3"
     volumes:
-      - ${AIRFLOW_PROJ_DIR}/dags:/opt/airflow/dags
-      - ${AIRFLOW_PROJ_DIR}/requirements.txt:/opt/airflow/requirements.txt
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/requirements.txt:/opt/airflow/requirements.txt
