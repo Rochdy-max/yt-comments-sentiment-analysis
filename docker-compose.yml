@@ -38,11 +38,6 @@ services:
     extends:
       file: base-services.yml
       service: airflow_common_base
-    environment:
-      - KAFKA_BOOTSTRAP_SERVER=kafka_broker:9092
-      - COMMENTS_TOPIC_NAME=${COMMENTS_TOPIC_NAME}
-    env_file:
-      - .env.secrets
     entrypoint: bash -c "airflow db upgrade && pip install -r requirements.txt && airflow webserver"
     restart: always
     depends_on:
