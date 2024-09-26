@@ -24,30 +24,23 @@ with DAG(dag_id="demo_dag", start_date=datetime.today(), schedule="0 0 * * *") a
     def airflow():
         print("airflow")
 
-    @task
+    @task()
     def print_env_var():
         kafka_topic = os.environ.get('COMMENTS_TOPIC_NAME')
         api_key = os.environ.get('GOOGLE_API_KEY')
         print(f"{kafka_topic=}")
         print(f"{api_key=}")
 
-    set_env_var = BashOperator(task_id='set_env_var',
-                               bash_command='export AIRFLOW_VAR_COMMENTS_TOPIC_NAME=$COMMENTS_TOPIC_NAME ' \
-                               '&& echo AIRFLOW_VAR_COMMENTS_TOPIC_NAME=$AIRFLOW_VAR_COMMENTS_TOPIC_NAME ' \
-                               '&& export AIRFLOW_VAR_GOOGLE_API_KEY=$GOOGLE_API_KEY ' \
-                               '&& echo AIRFLOW_VAR_GOOGLE_API_KEY=$AIRFLOW_VAR_GOOGLE_API_KEY')
-
-    @task
+    @task()
     def print_context_var():
         kafka_topic = Variable.get('comments_topic_name')
-        api_key = "KEY" # Variable.get('google_api_key')
+        api_key = Variable.get('google_api_key')
+        bootstrap_server = Variable.get('kafka_bootstrap_server')
         print(f"{kafka_topic=}")
         print(f"{api_key=}")
+        print(f"{bootstrap_server=}")
 
-    # Set dependencies between tasks
-    hello >> print_world()
-    hello >> print_rochdy()
-    hello >> print_airflow()
-    hello >> airflow()
-    set_env_var >> print_context_var()
+    # DAG modelisation
+    hello >> [print_world(), print_rochdy(), print_airflow(), airflow()]
     print_env_var()
+    print_context_var()
