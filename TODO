@@ -9,4 +9,4 @@ Todo:
     [] Use Flink to ingest result data in Cassandra
     [] Create an Airflow job to register a video for sentiment analysis
     [] Make things asynchronous
-    [] Maintain state between two execution
+    [] Maintain state between two execution (kafka and airflow setup on first launch)
