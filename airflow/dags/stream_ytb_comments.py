@@ -1,11 +1,11 @@
 import requests, json
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 
 class YtbCommentsStreamingAgent:
     """
     An agent for streaming comments from YouTube
     """
-    def __init__(self, api_key: str, producer: KafkaProducer, kafka_topic: str):
+    def __init__(self, api_key: str, producer: Producer, kafka_topic: str):
         """
         Set the internal attributes to values of provided parameters
 
@@ -38,7 +38,9 @@ class YtbCommentsStreamingAgent:
         :param (Any | None) key: Specify a key for the data
         :param (Any | None) value: Value of data
         """
-        self.producer.send(self.kafka_topic, key=key, value=value)
+        print("Sending data...")
+        self.producer.produce(self.kafka_topic, key=key, value=value)
+        print("Flushing...")
         self.producer.flush()
 
     def start(self):
@@ -58,9 +60,10 @@ class YtbCommentsStreamingAgent:
 if __name__ == '__main__':
     import os
 
-    kafka_topic = os.environ.get('COMMENTS_TOPIC_NAME')
-    api_key = os.environ.get('GOOGLE_API_KEY')
-    producer = KafkaProducer(bootstrap_servers = [os.environ.get('KAFKA_BOOTSTRAP_SERVER')],
-                             api_version = (0,11,5))
+    kafka_topic = os.environ.get('AIRFLOW_VAR_COMMENTS_TOPIC_NAME')
+    api_key = os.environ.get('AIRFLOW_VAR_GOOGLE_API_KEY')
+    producer = Producer({
+        "bootstrap.servers" : os.environ.get('AIRFLOW_VAR_KAFKA_BOOTSTRAP_SERVER')
+    })
     agent = YtbCommentsStreamingAgent(api_key, producer, kafka_topic)
     agent.start()

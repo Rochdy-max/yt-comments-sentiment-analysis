@@ -93,6 +93,7 @@ clickclick==20.10.2
 colorama==0.4.6
 colorlog==4.8.0
 ConfigUpdater==3.2
+confluent-kafka==2.5.3
 connexion==2.14.2
 cron-descriptor==1.4.3
 croniter==2.0.5
@@ -211,7 +212,6 @@ json-merge-patch==0.2
 jsonpath-ng==1.6.1
 jsonschema==4.23.0
 jsonschema-specifications==2023.12.1
-kafka-python-ng==2.2.2
 kombu==5.3.7
 kubernetes==29.0.0
 kubernetes_asyncio==29.0.0
