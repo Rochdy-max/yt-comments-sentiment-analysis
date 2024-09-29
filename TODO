@@ -3,10 +3,11 @@ Todo:
     [+] Create my first job
     [+] Setup Kafka
     [+] Create an Airflow job to get comments from a YouTube video and bridge them to Kafka (kafka producer)
-    [] Setup Spark
-    [] Use Spark Streaming and TextBlob to analyse sentiment for each comment, then send results to kafka (kafka consumer and also producer)
     [] Setup Cassandra
-    [] Use Flink to ingest result data in Cassandra
-    [] Create an Airflow job to register a video for sentiment analysis
+    [] Add transformation step with sentiment analysis (TextBlob)
+    [] Create an Airflow dag to register a video for sentiment analysis
+        [] Task for adding video ID
+        [] Task to start comments analysis dag
+    [] Use Flink to ingest result data toward AWS
     [] Make things asynchronous
-    [] Maintain state between two execution (kafka and airflow setup on first launch)
+    [] Maintain state between two execution (kafka and airflow setup only on first launch)
