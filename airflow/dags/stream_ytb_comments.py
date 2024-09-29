@@ -1,69 +1,87 @@
+from airflow.decorators import task, dag
 import requests, json
 from confluent_kafka import Producer
+from datetime import datetime, timedelta
+from airflow.models import Variable
 
-class YtbCommentsStreamingAgent:
+def fetch_ytb_comments_for_video(video_id: str):
     """
-    An agent for streaming comments from YouTube
+    Fetch comments for a specified YouTube video specified by its ID
+    
+    :param str video_id: A YouTube video ID
+
+    :return: JSON encoded list of the 100 first comments for the provided video
+    :rtype: Any
     """
-    def __init__(self, api_key: str, producer: Producer, kafka_topic: str):
-        """
-        Set the internal attributes to values of provided parameters
+    # API key for Google (YouTube)
+    api_key = Variable.get('GOOGLE_API_KEY')
+    # URL to get video comments
+    url = f'https://www.googleapis.com/youtube/v3/commentThreads?key={api_key}&part=id,snippet&videoId={video_id}&maxResults=2'
 
-        :param str api_key: An API key to use for accessing YouTube from GoogleAPIs
-        :param KafkaProducer producer: Kafka producer object to send data to the broker
-        :param str kafka_topic: Topic name where data will be sent
-        """
-        self.api_key = api_key
-        self.producer = producer
-        self.kafka_topic = kafka_topic
+    response = requests.get(url)
+    return response.json()
 
-    def fetch_ytb_comments(self, video_id: str):
-        """
-        Fetch comments for a specified YouTube video specified by its ID
-        
-        :param str video_id: A YouTube video ID
+def publish_to_kafka(video_id=None, data=None):
+    """
+    Send data to Kafka
 
-        :return: JSON encoded list of the 100 first comments for the provided video
-        :rtype: Any
-        """
-        url = f'https://www.googleapis.com/youtube/v3/commentThreads?key={self.api_key}&part=id,snippet&videoId={video_id}&maxResults=100'
+    :param (Any | None) video_id: A YouTube video ID
+    :param (Any | None) data: JSON object containing the list of comments
+    """
+    # Kafka topic
+    kafka_topic = Variable.get('COMMENTS_TOPIC_NAME')
+    # Kafka producer configuration
+    producer_settings = {
+        "bootstrap.servers" : Variable.get('KAFKA_BOOTSTRAP_SERVER'),
+        "security.protocol": "PLAINTEXT"
+    }
+    # Create producer
+    producer = Producer(producer_settings)
+    # Print kafka metadata
+    # print()
+    # print("BROKERS LIST:", *(f'{broker_mtd.host}:{broker_mtd.port}' for _, broker_mtd in producer.list_topics().brokers.items()), sep='\n')
+    # print()
+    # print("TOPICS LIST:", *(topic_mtd.topic for id, topic_mtd in producer.list_topics().topics.items()), sep='\n')
+    # print()
 
-        response = requests.get(url)
-        return response.json()
+    # Callback for Kafka produce
+    def log_delivery_status(err, msg):
+        """Reports the delivery status of the message to Kafka."""
+        if err is not None:
+            print('Message delivery failed:', err)
+        else:
+            print('Message delivered to', msg.topic(), '[Partition: {}]'.format(msg.partition()))
+    # Send data
+    print("Sending data...")
+    producer.produce(
+        kafka_topic,
+        key=video_id.encode('utf-8'),
+        value=json.dumps(data).encode('utf-8'),
+        callback=log_delivery_status
+    )
+    print("Flushing...")
+    producer.flush(10)
+    print("END")
 
-    def produce_to_kafka(self, key=None, value=None):
-        """
-        Send data to Kafka
+# Define data streaming DAG
+def stream_ytb_comments():
+    """
+    Fetch comments and stream it to Kafka
+    """
+    # YouTube video ID list
+    videos = [
+        '_VB39Jo8mAQ'
+    ]
 
-        :param (Any | None) key: Specify a key for the data
-        :param (Any | None) value: Value of data
-        """
-        print("Sending data...")
-        self.producer.produce(self.kafka_topic, key=key, value=value)
-        print("Flushing...")
-        self.producer.flush()
-
-    def start(self):
-        """
-        Fetch comments and stream it to Kafka
-        """
-        video_id = '_VB39Jo8mAQ'
+    for video_id in videos:
         # Fetch comments
-        comments = self.fetch_ytb_comments(video_id)
-        print(json.dumps(comments, indent=4))
+        comments = fetch_ytb_comments_for_video(video_id)
         # Send comments to kafka
-        self.produce_to_kafka(key = video_id.encode('utf-8'),
-                              value = json.dumps(comments).encode('utf-8'))
-        print(f'Data sent to Kafka (TOPIC: {self.kafka_topic})')
+        publish_to_kafka(
+            video_id=video_id,
+            data=comments
+        )
 
-# Example of usage
+# Start DAG
 if __name__ == '__main__':
-    import os
-
-    kafka_topic = os.environ.get('AIRFLOW_VAR_COMMENTS_TOPIC_NAME')
-    api_key = os.environ.get('AIRFLOW_VAR_GOOGLE_API_KEY')
-    producer = Producer({
-        "bootstrap.servers" : os.environ.get('AIRFLOW_VAR_KAFKA_BOOTSTRAP_SERVER')
-    })
-    agent = YtbCommentsStreamingAgent(api_key, producer, kafka_topic)
-    agent.start()
+    stream_ytb_comments()

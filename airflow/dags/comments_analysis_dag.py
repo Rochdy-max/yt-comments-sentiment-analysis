@@ -1,7 +1,7 @@
 from airflow.models.dag import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from utilities import setup_streaming_agent
+from stream_ytb_comments import stream_ytb_comments
 
 # Default arguments for the DAG
 DAG_DEFAULT_ARGS = {
@@ -17,14 +17,12 @@ with DAG(
     schedule_interval = '@daily',
     start_date = datetime.today(),
     catchup = False
-):
-    # Get an agent with appropriate configuration
-    streaming_agent = setup_streaming_agent()
+) as dag:
     # Define data streaming task
     stream_ytb_comments_task = PythonOperator(
         task_id='stream_ytb_comments',
-        python_callable=streaming_agent.start
+        python_callable=stream_ytb_comments
     )
-    
-    # DAG modelisation
-    stream_ytb_comments_task
+
+if __name__ == '__main__':
+    dag.test()
