@@ -3,9 +3,9 @@ services:
   airflow_db:
     image: postgres:16.0
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     logging:
       options:
         max-size: 10m
@@ -86,6 +86,17 @@ services:
     volumes:
       - ./kafka/:/opt/kafka/app/
 
+  cassandra_db:
+    image: cassandra:latest
+    environment:
+      CASSANDRA_HOST: ${CASSANDRA_HOST}
+      CASSANDRA_KEYSPACE: ${CASSANDRA_KEYSPACE}
+      FETCHING_INFO_TABLE: ${FETCHING_INFO_TABLE}
+    volumes:
+      - cassandra-db-volume:/var/lib/cassandra
+      - ./cassandra/:/opt/cassandra/app/
+
 volumes:
   postgres-db-volume:
+  cassandra-db-volume:
   spark_data:
