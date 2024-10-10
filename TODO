@@ -4,7 +4,7 @@ Todo:
     [+] Setup Kafka
     [+] Create an Airflow job to get comments from a YouTube video and bridge them to Kafka (kafka producer)
     [+] Add transformation step with sentiment analysis (TextBlob)
-    [] Setup Cassandra
+    [+] Setup Cassandra
     [] Create an Airflow dag to register a video for sentiment analysis
         [] Task for adding video ID
         [] Task to start comments analysis dag
