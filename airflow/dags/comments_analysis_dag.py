@@ -19,6 +19,11 @@ with DAG(
         "video_id": Param(
             type="string",
         ),
+        "fetching_start_datetime": Param(
+            None,
+            type=["string", "null"],
+            format="date-time"
+        )
     },
     render_template_as_native_obj=True, # provide params to Tasks as specified type instead of (default behavior) string
     default_args = DAG_DEFAULT_ARGS,
@@ -29,7 +34,11 @@ with DAG(
     # Define data streaming task
     stream_ytb_comments_task = PythonOperator(
         task_id='stream_ytb_comments',
-        python_callable=stream_ytb_comments
+        python_callable=stream_ytb_comments,
+        op_kwargs={
+            "video_id": "{{ params.video_id }}",
+            "fetching_start_datetime": "{{ params.fetching_start_datetime }}",
+        }
     )
     # Define timestamp updating task
     update_last_comments_analysis_timestamp_task = PythonOperator(
