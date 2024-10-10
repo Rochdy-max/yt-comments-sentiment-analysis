@@ -49,7 +49,7 @@ with DAG(
         }
     )
     # Define tasks' dependency
-    stream_ytb_comments_task >> update_last_comments_analysis_timestamp_task
+    update_last_comments_analysis_timestamp_task >> stream_ytb_comments_task
 
 if __name__ == '__main__':
     dag.test()
